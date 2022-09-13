@@ -3,7 +3,7 @@ package com.example.springsecurityjwtexample.security;
 import com.example.springsecurityjwtexample.domain.Response.HttpResponse;
 import com.example.springsecurityjwtexample.domain.Response.HttpResponseError;
 import com.example.springsecurityjwtexample.domain.model.User;
-import com.example.springsecurityjwtexample.helper.JwtUtil;
+import com.example.springsecurityjwtexample.security.jwt.JwtUtil;
 import com.example.springsecurityjwtexample.repository.UserRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.http.HttpStatus;
@@ -23,6 +23,9 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Map;
 
+import static com.example.springsecurityjwtexample.security.SecurityConstant.ACCESS_TOKEN_EXPIRED_TIME;
+import static com.example.springsecurityjwtexample.security.SecurityConstant.REFRESH_TOKEN_EXPIRED_TIME;
+
 public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
 
     private final AuthenticationManager authenticationManager;
@@ -41,13 +44,10 @@ public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFi
         try {
             InputStream inputStream = request.getInputStream();
             Map auth = new ObjectMapper().readValue(inputStream, Map.class);
-
-            if(auth.get("username") == null || auth.get("username").equals("") || auth.get("password") == null || auth.get("password").equals("")){
+            if (auth.get("username") == null || auth.get("username").equals("") || auth.get("password") == null || auth.get("password").equals("")) {
                 throw new RuntimeException("username or password invalid");
             }
-
             return authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(auth.get("username"), auth.get("password")));
-
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -56,9 +56,9 @@ public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFi
     @Override
     protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authResult) throws IOException, ServletException {
         User user = userRepository.findByUsername(authResult.getName()).orElseThrow();
-        String accessToken = jwtUtil.generateToken(user, 20*60*1000L);
-        String refreshToken = jwtUtil.generateToken(user, 24*60*60*1000L);
-        Map<String, String> data = Map.of("accessToken", accessToken,"refreshToken", refreshToken);
+        String accessToken = jwtUtil.generateToken(user, ACCESS_TOKEN_EXPIRED_TIME);
+        String refreshToken = jwtUtil.generateToken(user, REFRESH_TOKEN_EXPIRED_TIME);
+        Map<String, String> data = Map.of("accessToken", accessToken, "refreshToken", refreshToken);
         HttpResponse re = new HttpResponse(true, 200, "Login successful", data);
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setStatus(HttpServletResponse.SC_OK);

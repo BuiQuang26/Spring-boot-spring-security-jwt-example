@@ -1,6 +1,6 @@
 package com.example.springsecurityjwtexample.security;
 
-import com.example.springsecurityjwtexample.helper.JwtUtil;
+import com.example.springsecurityjwtexample.security.jwt.JwtUtil;
 import com.example.springsecurityjwtexample.repository.UserRepository;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -10,6 +10,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 public class SecurityConfig {
@@ -20,7 +21,7 @@ public class SecurityConfig {
             // -- Swagger UI v3 (OpenAPI)
             "/v3/api-docs/**", "/swagger-ui/**",
             // other public endpoints of your API may be appended to this array
-            "/api/user/login", "/api/user/register", "/**"};
+            "/api/user/login", "/api/user/register"};
 
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
     private final UserDetailsService userDetailService;
@@ -49,12 +50,14 @@ public class SecurityConfig {
         http.exceptionHandling().authenticationEntryPoint(customAuthenticationEntryPoint);
 
         http.cors().and().csrf().disable();
-        http.authorizeHttpRequests().antMatchers(AUTH_WHITELIST).permitAll().anyRequest().authenticated();
+        http.authorizeHttpRequests()
+                .antMatchers(AUTH_WHITELIST).permitAll()
+                .anyRequest().authenticated();
 
         CustomAuthenticationFilter authenticationFilter = new CustomAuthenticationFilter(authenticationManager, jwtUtil, userRepository);
         authenticationFilter.setFilterProcessesUrl("/api/user/login");
         http.addFilter(authenticationFilter);
-
+        http.addFilterBefore(new CustomAuthorizationFilter(jwtUtil), UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
 
