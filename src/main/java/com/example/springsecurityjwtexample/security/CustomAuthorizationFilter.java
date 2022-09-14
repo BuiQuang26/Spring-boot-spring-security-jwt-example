@@ -32,9 +32,9 @@ public class CustomAuthorizationFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        if(request.getHeader(AUTHORIZATION) == null || !request.getHeader(AUTHORIZATION).startsWith("Bearer ")){
+        if (request.getHeader(AUTHORIZATION) == null || !request.getHeader(AUTHORIZATION).startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
-        }else {
+        } else {
             try {
                 String token = request.getHeader(AUTHORIZATION).substring("Bearer ".length());
                 Claims claims = jwtUtil.getClaims(token);
@@ -42,8 +42,8 @@ public class CustomAuthorizationFilter extends OncePerRequestFilter {
                 Long user_id = claims.get("user_id", Long.class);
                 String roles = claims.get("user_role", String.class);
                 List<SimpleGrantedAuthority> authorities = new ArrayList<>();
-                if(!roles.equals("")) {
-                    Arrays.stream(roles.split(",")).forEach(role->{
+                if (!roles.equals("")) {
+                    Arrays.stream(roles.split(",")).forEach(role -> {
                         authorities.add(new SimpleGrantedAuthority(role));
                     });
                 }
@@ -51,24 +51,22 @@ public class CustomAuthorizationFilter extends OncePerRequestFilter {
                 SecurityContextHolder.getContext().setAuthentication(authenticationToken);
                 request.setAttribute("userID", user_id);
                 request.setAttribute("username", username);
-
-            }catch (ExpiredJwtException e){
+            } catch (ExpiredJwtException e) {
                 System.out.println(e.getClass() + " : " + e.getMessage());
                 response.setStatus(4011);
-            }catch (UnsupportedJwtException e){
+            } catch (UnsupportedJwtException e) {
                 System.out.println(UnsupportedJwtException.class + " : " + e.getMessage());
-                response.setStatus(4011);
-            }catch (MalformedJwtException e){
+                response.setStatus(4012);
+            } catch (MalformedJwtException e) {
                 System.out.println(MalformedJwtException.class + " : " + e.getMessage());
-                response.setStatus(4011);
-            }catch (SignatureException e){
+                response.setStatus(4013);
+            } catch (SignatureException e) {
                 System.out.println(SignatureException.class + " : " + e.getMessage());
-                response.setStatus(4011);
-            }catch (IllegalArgumentException e){
+                response.setStatus(4014);
+            } catch (IllegalArgumentException e) {
                 System.out.println(IllegalArgumentException.class + " : " + e.getMessage());
-                response.setStatus(4011);
+                response.setStatus(4015);
             }
-
             filterChain.doFilter(request, response);
         }
     }

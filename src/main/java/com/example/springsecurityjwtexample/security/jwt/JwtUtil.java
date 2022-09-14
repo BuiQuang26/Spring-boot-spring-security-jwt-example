@@ -19,15 +19,12 @@ import java.util.stream.Collectors;
 @Component
 public class JwtUtil {
 
-    @Value("${spring-boot-app.jjwt.secret-key}")
-    private String secretKey;
-
     @Autowired
     UserRepository userRepository;
-
     @Autowired
     BCryptPasswordEncoder passwordEncoder;
-
+    @Value("${spring-boot-app.jjwt.secret-key}")
+    private String secretKey;
     private Key key;
 
     @PostConstruct
@@ -43,12 +40,7 @@ public class JwtUtil {
     public String generateToken(User user, Long expirationTime) {
         String roles = user.getRoles().stream().map(Role::getName).collect(Collectors.joining(","));
         Long now = (new Date()).getTime();
-        return Jwts.builder().setSubject(user.getUsername())
-                .claim("user_id", user.getId())
-                .claim("user_role", roles)
-                .signWith(key)
-                .setExpiration(new Date(now + expirationTime))
-                .compact();
+        return Jwts.builder().setSubject(user.getUsername()).claim("user_id", user.getId()).claim("user_role", roles).signWith(key).setExpiration(new Date(now + expirationTime)).compact();
 
     }
 
