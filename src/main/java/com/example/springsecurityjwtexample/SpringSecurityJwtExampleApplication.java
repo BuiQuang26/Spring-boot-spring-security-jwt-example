@@ -1,5 +1,8 @@
 package com.example.springsecurityjwtexample;
 
+import com.example.springsecurityjwtexample.domain.model.User;
+import com.example.springsecurityjwtexample.repository.RoleRepository;
+import com.example.springsecurityjwtexample.repository.UserRepository;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;

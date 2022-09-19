@@ -20,25 +20,23 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
     public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) throws IOException, ServletException {
         OutputStream responseStream = response.getOutputStream();
         ObjectMapper mapper = new ObjectMapper();
+        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         HttpResponseError re;
         switch (response.getStatus()) {
-            case 401:
+            case 401 -> {
                 re = new HttpResponseError(false, 401, HttpStatus.UNAUTHORIZED.name(), "Authorization failed");
-                response.setContentType(MediaType.APPLICATION_JSON_VALUE);
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                mapper.writeValue(responseStream, re);
-            case 4011:
+            }
+            case 4011 -> {
                 re = new HttpResponseError(false, 401, "TOKEN_EXPIRED", "Authorization failed");
-                response.setContentType(MediaType.APPLICATION_JSON_VALUE);
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                mapper.writeValue(responseStream, re);
-                break;
-            default:
+            }
+            default -> {
                 re = new HttpResponseError(false, 403, HttpStatus.FORBIDDEN.name(), "Access denied");
-                response.setContentType(MediaType.APPLICATION_JSON_VALUE);
                 response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-                mapper.writeValue(responseStream, re);
+            }
         }
+        mapper.writeValue(responseStream, re);
         responseStream.flush();
     }
 }

@@ -1,33 +1,43 @@
 package com.example.springsecurityjwtexample.api;
 
+import com.example.springsecurityjwtexample.domain.Response.HttpResponse;
 import com.example.springsecurityjwtexample.domain.model.User;
 import com.example.springsecurityjwtexample.repository.UserRepository;
+import com.example.springsecurityjwtexample.service.UserService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
+import javax.validation.Valid;
+import java.util.List;
 
 @RestController
 @SecurityRequirement(name = "bearerAuth")
 @RequestMapping("/api/user")
 public class UserApi {
 
-    @Autowired
-    UserRepository userRepository;
+    private final UserService userService;
+
+    public UserApi(UserRepository userRepository, UserService userService) {
+        this.userService = userService;
+    }
 
     @PostMapping(value = "/login")
     public void login(@RequestBody User user){}
 
     @PostMapping(value = "/register", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> userRegister(@RequestBody User user){
-        return null;
-        //todo
+    public ResponseEntity<?> userRegister(@RequestBody @Valid User user){
+        User u = userService.register(user);
+        return new ResponseEntity<>(new HttpResponse(true, 200, "Register success", user), HttpStatus.OK);
     }
 
     @GetMapping(value = "", produces = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> getAllUser(){
-        return new ResponseEntity<>(userRepository.findAll(), HttpStatus.OK);
+        List<User> users = userService.getAll();
+        return new ResponseEntity<>(users, HttpStatus.OK);
     }
 }

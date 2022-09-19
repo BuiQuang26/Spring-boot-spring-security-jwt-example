@@ -30,11 +30,6 @@ public class JwtUtil {
     @PostConstruct
     public void init() {
         key = Keys.hmacShaKeyFor(secretKey.getBytes());
-
-        User user = new User();
-        user.setUsername("admin");
-        user.setPassword(passwordEncoder.encode("admin"));
-        userRepository.save(user);
     }
 
     public String generateToken(User user, Long expirationTime) {
